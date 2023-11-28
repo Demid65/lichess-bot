@@ -9,23 +9,29 @@ class EvalConvMetaModel(nn.Module):
         super(EvalConvMetaModel, self).__init__()
 
         self.conv = nn.Sequential(
-            nn.Conv2d(12, 64, 3),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(64, 128, 3),
+            nn.Conv2d(12, 128, 5, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Conv2d(128, 256, 3),
             nn.BatchNorm2d(256),
             nn.ReLU(),
+            nn.Conv2d(256, 512, 3),
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
             nn.Flatten(),
         )
 
         self.linear = nn.Sequential(
-            nn.Linear(1024+5, 256),
+            nn.Linear(2048+5, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
-            nn.Linear(256, 64),
+            nn.Linear(256, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.Linear(64, 1)
@@ -38,9 +44,10 @@ class EvalConvMetaModel(nn.Module):
         x = self.linear(x)
         return x
 
+
 def load_model(model_path="model.pt"):
     model = EvalConvMetaModel()
-    ckpt = torch.load(model_path)
+    ckpt = torch.load(model_path, map_location=torch.device('cpu'))
     model.load_state_dict(ckpt)
     return model
 
