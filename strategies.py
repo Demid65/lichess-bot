@@ -11,6 +11,7 @@ import random
 from engine_wrapper import MinimalEngine
 from typing import Any, Union
 import logging
+from chess_ai import load_model, make_move
 MOVE = Union[PlayResult, list[chess.Move]]
 
 
@@ -54,6 +55,22 @@ class FirstMove(ExampleEngine):
         moves = list(board.legal_moves)
         moves.sort(key=str)
         return PlayResult(moves[0], None)
+
+
+class AIEngine(MinimalEngine):
+    """Chess engine powered by evaluation neural network"""
+
+    def __init__(self, commands: COMMANDS_TYPE, options: OPTIONS_TYPE, stderr: Optional[int],
+                 draw_or_resign: Configuration, name: Optional[str] = None, **popen_args: str) -> None:
+        
+        super().__init__(commands, options, stderr, draw_or_resign, name)
+
+        self.model = load_model()
+
+    def search(self, board: chess.Board, *args: Any) -> PlayResult:
+        """Evaluate all possible move with NN and get a result"""
+        move = make_move(board.fen(), self.model)
+        return PlayResult(move, None)
 
 
 class ComboEngine(ExampleEngine):
